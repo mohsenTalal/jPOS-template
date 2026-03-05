@@ -1,23 +1,30 @@
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-apply plugin: 'idea'
-apply plugin: 'eclipse'
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'eclipse'
+    id 'org.jpos.jposapp' version '0.0.16'
+}
 
 group = 'org.jpos.template'
 version = '3.0.1-SNAPSHOT'
-sourceCompatibility = 25
-targetCompatibility = 25
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
 
 repositories {
     mavenCentral()
     maven { url = uri('https://jpos.org/maven') }
     mavenLocal()
-
 }
 
 dependencies {
     implementation 'org.jpos:jpos:3.0.1-SNAPSHOT'
 }
 
-apply from: 'jpos-app.gradle'
-
+jpos {
+    distDir.set('src/dist')
+}
