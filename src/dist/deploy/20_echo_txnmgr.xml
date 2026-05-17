@@ -1,0 +1,9 @@
+<txnmgr class="org.jpos.transaction.TransactionManager" logger="Q2" name="echo-txnmgr">
+    <property name="queue" value="echo-request" />
+    <property name="sessions" value="2" />
+
+    <participant class="com.example.EchoParticipant" logger="Q2" realm="echo-participant">
+        <property name="source" value="REQUEST" />
+        <property name="destination" value="DESTINATION" />
+    </participant>
+</txnmgr>

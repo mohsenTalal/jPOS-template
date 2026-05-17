@@ -4,6 +4,9 @@ plugins {
     id 'idea'
     id 'eclipse'
     id 'org.jpos.jposapp' version '0.0.16'
+
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'org.jpos.template'
@@ -23,6 +26,9 @@ repositories {
 
 dependencies {
     implementation 'org.jpos:jpos:3.0.1-SNAPSHOT'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 jpos {

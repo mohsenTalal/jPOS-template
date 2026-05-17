@@ -1,0 +1,17 @@
+<server class="org.jpos.q2.iso.QServer" logger="Q2" name="echo-server">
+    <attr name="port" type="java.lang.Integer">8000</attr>
+
+    <channel class="org.jpos.iso.channel.ASCIIChannel"
+             packager="org.jpos.iso.packager.ISO87APackager"
+             type="server"
+             logger="Q2"
+             realm="echo-server-channel" />
+
+    <request-listener class="org.jpos.iso.IncomingListener"
+                      logger="Q2"
+                      realm="echo-listener">
+        <property name="queue" value="echo-request" />
+        <property name="source" value="DESTINATION" />
+        <property name="request" value="REQUEST" />
+    </request-listener>
+</server>

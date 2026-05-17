@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+export PATH="$JAVA_HOME/bin:$PATH"
+
 cd `dirname $0`/.. || exit 1
 rm -f deploy/shutdown.xml
 
@@ -8,10 +11,10 @@ then
    echo "Process $(cat jpos.pid) is running"
 else
   rm -f jpos.pid
-  exec java -server \
+  exec "$JAVA_HOME/bin/java" -server \
     -XX:+IgnoreUnrecognizedVMOptions \
     -Xmx1G \
     -Djava.net.preferIPv4Stack=true \
-    -jar @jarname@  --pid="jpos.pid" "$@"
+    -cp "jPOS-template-3.0.1-SNAPSHOT-plain.jar:lib/*" \
+    org.jpos.q2.Q2 --pid="jpos.pid" "$@"
 fi
-
