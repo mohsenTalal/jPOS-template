@@ -1,0 +1,14 @@
+<channel-adaptor name='visa-channel'
+                 class='org.jpos.q2.iso.ChannelAdaptor' logger='Q2'>
+    <channel class='org.jpos.iso.channel.NACChannel'
+             packager='org.jpos.iso.packager.GenericPackager'
+             header='4'>
+        <property name='packager-config'
+                  value='cfg/visa-packager.xml'/>
+        <property name='host' value='ebc2test.sa.cybersource.com'/>
+        <property name='port' value='443'/>
+    </channel>
+    <in>visa-send</in>
+    <out>visa-receive</out>
+    <reconnect-delay>10000</reconnect-delay>
+</channel-adaptor>

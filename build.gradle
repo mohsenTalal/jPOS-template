@@ -29,8 +29,21 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    ////Mohsen's code
+    //implementation 'org.jpos:jpos:2.1.9'
+    //implementation 'org.jpos.ee:jposee-core:2.2.8'
+    implementation 'com.cybersource:cybersource-rest-client-java:0.0.55'
 }
 
 jpos {
     distDir.set('src/dist')
+}
+
+// ── CyberSource sandbox test ──────────────────────────────────────────────────
+task testCyberSource(type: JavaExec) {
+    group = 'verification'
+    description = 'Test CyberSource sandbox connection'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.example.api.CyberSourceTest'
+    workingDir = file('src/dist')
 }

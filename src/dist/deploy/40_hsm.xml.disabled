@@ -1,0 +1,5 @@
+<security-module name='sm-default'
+                 class='org.jpos.q2.security.SMAdaptor' logger='Q2'>
+    <attr name='impl'>org.jpos.security.jceadapter.JCESecurityModule</attr>
+    <property name='lmk' value='cfg/lmk.jce'/>
+</security-module>

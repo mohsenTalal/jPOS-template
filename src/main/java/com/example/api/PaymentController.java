@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/payments")
+@RequestMapping("/api/payment")
 public class PaymentController {
 
     private final JposClientService jposClientService;

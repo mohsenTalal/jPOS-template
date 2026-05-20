@@ -5,6 +5,7 @@ import org.jpos.iso.channel.ASCIIChannel;
 import org.jpos.iso.packager.ISO87APackager;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -23,19 +24,31 @@ public class JposClientService {
         channel.connect();
 
         try {
+            String stan = generateStan();
+            String rrn = generateRrn();
+
             ISOMsg isoRequest = new ISOMsg();
             isoRequest.setMTI("0200");
 
-            isoRequest.set(2, request.getPan());
-            isoRequest.set(3, "000000");
+            // Card details
+            isoRequest.set(2, request.getCardNumber());
+            isoRequest.set(3, "000000"); // Purchase
             isoRequest.set(4, convertAmountToIsoAmount(request.getAmount()));
             isoRequest.set(7, transmissionDateTime());
-            isoRequest.set(11, generateStan());
-            isoRequest.set(22, "051");
-            isoRequest.set(37, generateRrn());
-            isoRequest.set(41, padRight(request.getTerminalId(), 8));
-            isoRequest.set(42, padRight(request.getMerchantId(), 15));
-            isoRequest.set(49, request.getCurrency());
+            isoRequest.set(11, stan);
+
+            // Expiry date: field 14 = YYMM
+            isoRequest.set(14, toIsoExpiry(request.getExpiryMonth(), request.getExpiryYear()));
+
+            // POS / merchant details
+            isoRequest.set(22, "051"); // e-commerce/manual entry simulation
+            isoRequest.set(37, rrn);
+            isoRequest.set(41, padRight("TERM001", 8));
+            isoRequest.set(42, padRight("MERCHANT000001", 15));
+            isoRequest.set(49, mapCurrency(request.getCurrency()));
+
+            // Optional card acceptor name/location field
+            isoRequest.set(43, padRight(buildCardAcceptorName(request), 40));
 
             System.out.println("Sending ISO request from REST API:");
             isoRequest.dump(System.out, "");
@@ -48,13 +61,18 @@ public class JposClientService {
             isoResponse.dump(System.out, "");
 
             String responseCode = isoResponse.getString(39);
+            String authorizationCode = isoResponse.hasField(38)
+                    ? isoResponse.getString(38)
+                    : null;
 
             return new PaymentAuthorizeResponse(
                     isoResponse.getMTI(),
                     responseCode,
                     mapResponseCode(responseCode),
                     isoResponse.getString(11),
-                    isoResponse.getString(37)
+                    isoResponse.getString(37),
+                    authorizationCode,
+                    null
             );
 
         } finally {
@@ -63,10 +81,10 @@ public class JposClientService {
     }
 
     private String convertAmountToIsoAmount(String amount) {
-        // Example: "100.00" -> "000000010000"
-        double value = Double.parseDouble(amount);
-        long cents = Math.round(value * 100);
-        return String.format("%012d", cents);
+        // Example: "10.00" -> "000000001000"
+        BigDecimal value = new BigDecimal(amount);
+        BigDecimal cents = value.multiply(new BigDecimal("100"));
+        return String.format("%012d", cents.longValue());
     }
 
     private String transmissionDateTime() {
@@ -80,6 +98,38 @@ public class JposClientService {
 
     private String generateRrn() {
         return String.format("%012d", Math.abs(new Random().nextLong()) % 1_000_000_000_000L);
+    }
+
+    private String toIsoExpiry(String expiryMonth, String expiryYear) {
+        if (expiryMonth == null || expiryYear == null) {
+            throw new IllegalArgumentException("expiryMonth and expiryYear are required");
+        }
+
+        String mm = expiryMonth.length() == 1 ? "0" + expiryMonth : expiryMonth;
+        String yy = expiryYear.length() == 4
+                ? expiryYear.substring(2, 4)
+                : expiryYear;
+
+        return yy + mm; // YYMM
+    }
+
+    private String mapCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            return "682";
+        }
+
+        return switch (currency.toUpperCase()) {
+            case "SAR" -> "682";
+            case "USD" -> "840";
+            case "EUR" -> "978";
+            default -> currency;
+        };
+    }
+
+    private String buildCardAcceptorName(PaymentAuthorizeRequest request) {
+        String city = request.getCity() != null ? request.getCity() : "Riyadh";
+        String country = request.getCountry() != null ? request.getCountry() : "SA";
+        return "ECOMMERCE MERCHANT " + city + " " + country;
     }
 
     private String padRight(String value, int length) {

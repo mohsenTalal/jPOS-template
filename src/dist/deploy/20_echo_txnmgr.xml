@@ -1,9 +1,38 @@
-<txnmgr class="org.jpos.transaction.TransactionManager" logger="Q2" name="echo-txnmgr">
-    <property name="queue" value="echo-request" />
-    <property name="sessions" value="2" />
+<txnmgr name='txnmgr'
+        class='org.jpos.transaction.TransactionManager'
+        logger='Q2'
+        realm='txnmgr'>
 
-    <participant class="com.example.EchoParticipant" logger="Q2" realm="echo-participant">
-        <property name="source" value="REQUEST" />
-        <property name="destination" value="DESTINATION" />
-    </participant>
+    <property name='queue' value='echo-request'/>
+    <property name='sessions' value='2'/>
+
+    <!-- 1. Authorize via CyberSource or set response code -->
+    <participant class='com.example.api.CyberSourceAuthParticipant' logger='Q2'/>
+
+    <!-- 2. Build and send ISO-8583 response back to client -->
+    <participant class='com.example.api.ResponseBuilderParticipant' logger='Q2'/>
+
 </txnmgr>
+
+<!--
+<txnmgr name='txnmgr'
+        class='org.jpos.transaction.TransactionManager'
+        logger='Q2' realm='txnmgr'>
+    <property name='queue'    value='TXNMGR'/>
+    <property name='sessions' value='2'/>
+
+    &lt;!&ndash; 1. Validate incoming ISO-8583 message &ndash;&gt;
+    <participant class='com.example.EchoParticipant' logger='Q2'/>
+
+    &lt;!&ndash; 2. Translate PIN (ANS X9.24 DUKPT) &ndash;&gt;
+    <participant class='com.example.security.DukptKeyManager' logger='Q2'/>
+
+    &lt;!&ndash; 3. Validate EMV cryptogram &ndash;&gt;
+    <participant class='com.example.emv.EmvParticipant' logger='Q2'/>
+
+    &lt;!&ndash; 4. Authorize via CyberSource &ndash;&gt;
+    <participant class='com.example.api.CyberSourceAuthParticipant' logger='Q2'/>
+
+    &lt;!&ndash; 5. Build ISO-8583 response back to terminal &ndash;&gt;
+    <participant class='com.example.api.ResponseBuilderParticipant' logger='Q2'/>
+</txnmgr>-->
